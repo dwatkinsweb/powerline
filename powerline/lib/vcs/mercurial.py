@@ -86,3 +86,6 @@ class Repository(object):
 			get_func=branch_name_from_config_file,
 			create_watcher=self.create_watcher,
 		)
+
+	def upstream(self):
+		pass

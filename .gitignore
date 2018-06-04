@@ -11,3 +11,5 @@ build
 message.fail
 
 client/powerline
+
+.idea
