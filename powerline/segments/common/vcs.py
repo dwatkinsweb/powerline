@@ -21,7 +21,9 @@ class BranchSegment(Segment):
 			repo = guess(path=name, create_watcher=create_watcher)
 			if repo is not None:
 				branch = repo.branch()
+				upstream, difference = repo.upstream()
 				scol = ['branch']
+				status = None
 				if status_colors:
 					try:
 						status = tree_status(repo, pl)
@@ -33,8 +35,21 @@ class BranchSegment(Segment):
 						if status in ignore_statuses:
 							status = None
 					scol.insert(0, 'branch_dirty' if status else 'branch_clean')
+				contents = branch
+				if upstream:
+					if difference:
+						a, b = difference
+						if a and b:
+							upstream = '(+{}/-{}) {}'.format(a, b, upstream)
+						elif a:
+							upstream = '(+{}) {}'.format(a, upstream)
+						elif b:
+							upstream = '(-{}) {}'.format(b, upstream)
+					contents = '{}  {}'.format(contents, upstream)
+				if status:
+					contents = '{} *'.format(contents)
 				return [{
-					'contents': branch,
+					'contents': contents,
 					'highlight_groups': scol,
 					'divider_highlight_group': self.divider_highlight_group,
 				}]
@@ -46,7 +61,7 @@ branch = with_docstring(BranchSegment(),
 :param bool status_colors:
 	Determines whether repository status will be used to determine highlighting. 
 	Default: False.
-:param list ignore_statuses:
+:param bool ignore_statuses:
 	List of statuses which will not result in repo being marked as dirty. Most 
 	useful is setting this option to ``["U"]``: this will ignore repository 
 	which has just untracked files (i.e. repository with modified, deleted or 

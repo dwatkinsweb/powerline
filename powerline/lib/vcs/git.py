@@ -161,6 +161,21 @@ try:
 						index_column = 'I'
 				r = wt_column + index_column + untracked_column
 				return r if r != '   ' else None
+
+		def upstream(self):
+			repo = git.Repository(git_directory(self.directory))
+			try:
+				current_branch = repo.branches.get(repo.head.shorthand)
+			except git.GitError:
+				pass
+			else:
+				if current_branch:
+					upstream = current_branch.upstream
+					if upstream:
+						difference = repo.ahead_behind(current_branch.target.hex, upstream.target.hex)
+						return upstream.shorthand, difference
+			return None, None
+
 except ImportError:
 	class Repository(GitRepository):
 		def __init__(self, *args, **kwargs):
@@ -170,8 +185,8 @@ except ImportError:
 
 		@staticmethod
 		def ignore_event(path, name):
-			# Ignore changes to the index.lock file, since they happen 
-			# frequently and don't indicate an actual change in the working tree
+			# Ignore changes to the index.lock file, since they happen
+			# frequently and dont indicate an actual change in the working tree
 			# status
 			return path.endswith('.git') and name == 'index.lock'
 
@@ -206,3 +221,6 @@ except ImportError:
 
 				r = wt_column + index_column + untracked_column
 				return r if r != '   ' else None
+
+		def upstream(self):
+			return None, None
